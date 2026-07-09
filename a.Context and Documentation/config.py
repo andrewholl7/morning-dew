@@ -212,6 +212,12 @@ COURSES = [
     # is *probably* a free foursome, but a single/pair could have booked it.
     # Treat the spot count for these two as an availability flag, not exact.
     # ----------------------------------------------------------------------
+    # These 4 all fetch fine locally but come back empty on the live Render
+    # site -- Chronogolf sits behind Cloudflare, which appears to be scoring/
+    # blocking Render's datacenter IP range harder than a residential one.
+    # Disabled here (not a data problem) until we build a real fix: fetching
+    # these from a residential IP and merging results in, or replacing them
+    # with a static "Book directly" link using booking_url below.
     {
         "name": "The Tradition Golf Club",
         "key": "tradition",
@@ -219,7 +225,7 @@ COURSES = [
         "club_id": 9436,
         "affiliation_type_id": 38566,
         "booking_url": "https://www.chronogolf.com/club/the-tradition",
-        "enabled": True,
+        "enabled": False,
     },
     {
         "name": "Waterford Golf Club",
@@ -228,7 +234,7 @@ COURSES = [
         "club_id": 13044,
         "affiliation_type_id": 52998,
         "booking_url": "https://www.chronogolf.com/club/waterford-golf-club-south-carolina",
-        "enabled": True,
+        "enabled": False,
     },
     # Matthews, NC. Validated live on 2026-07-08 -- real inventory returned.
     {
@@ -238,7 +244,7 @@ COURSES = [
         "club_id": 9419,
         "affiliation_type_id": 38498,
         "booking_url": "https://www.chronogolf.com/club/the-divide",
-        "enabled": True,
+        "enabled": False,
     },
     # Charlotte, NC. Validated live on 2026-07-08 -- real inventory returned.
     {
@@ -248,7 +254,7 @@ COURSES = [
         "club_id": 18944,
         "affiliation_type_id": 111817,
         "booking_url": "https://www.chronogolf.com/club/highland-creek-golf-club",
-        "enabled": True,
+        "enabled": False,
     },
     # Warrior books online via ForeUp (course 18999 / schedule 795), NOT its
     # Chronogolf listing (which returns empty). Validated live -- ~40 slots/day.

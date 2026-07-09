@@ -381,12 +381,12 @@ _TEMPLATE = r"""<!DOCTYPE html>
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:10px;">
-    <span class="flabel" style="margin:0;width:54px;flex:none;">Players</span>
-    <div class="seg" id="playerSegMob" style="flex:1"></div>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px;">
     <span class="flabel" style="margin:0;width:54px;flex:none;">Holes</span>
     <div class="seg" id="holeSegMob" style="flex:1"></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span class="flabel" style="margin:0;width:54px;flex:none;">Players</span>
+    <div class="seg" id="playerSegMob" style="flex:1"></div>
   </div>
   <div class="fblock" style="margin:0">
     <span class="flabel">Courses</span>
@@ -446,12 +446,12 @@ _TEMPLATE = r"""<!DOCTYPE html>
       </div>
     </div>
     <div class="fblock">
-      <span class="flabel">Players</span>
-      <div class="seg" id="playerSegDsk"></div>
-    </div>
-    <div class="fblock">
       <span class="flabel">Holes</span>
       <div class="seg" id="holeSegDsk"></div>
+    </div>
+    <div class="fblock">
+      <span class="flabel">Players</span>
+      <div class="seg" id="playerSegDsk"></div>
     </div>
     <div class="fblock">
       <div class="frow-head">
