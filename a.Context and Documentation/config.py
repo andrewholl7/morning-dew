@@ -60,6 +60,28 @@ COURSES = [
         "booking_class": "",
         "enabled": True,
     },
+    # Asheboro, NC -- ~65 miles out, outside the usual 30-mile radius, but
+    # explicitly requested. Validated live on 2026-07-08 (~40+ slots/day).
+    {
+        "name": "Tot Hill Farm Golf Club",
+        "key": "tothillfarm",
+        "platform": "foreup",
+        "course_id": 22389,
+        "schedule_id": 10640,
+        "booking_class": "",
+        "enabled": True,
+    },
+    # Lancaster, SC -- ~46 miles out, outside the usual 30-mile radius, but
+    # explicitly requested. Validated live on 2026-07-08.
+    {
+        "name": "Lancaster Golf Club",
+        "key": "lancaster",
+        "platform": "foreup",
+        "course_id": 20824,
+        "schedule_id": 5729,
+        "booking_class": "",
+        "enabled": True,
+    },
 
     # ----------------------------------------------------------------------
     # teeitup / GolfNow courses (Kenna backend). `alias` is how the API
@@ -109,6 +131,15 @@ COURSES = [
         "booking_url": "https://rock-barn-golf-and-spa-jackson-course.book.teeitup.com/",
         "enabled": True,
     },
+    # Validated live on 2026-07-08 -- real inventory on teeitup/Kenna.
+    {
+        "name": "Monroe Country Club",
+        "key": "monroecc",
+        "platform": "teeitup",
+        "alias": "monroe-country-club",
+        "booking_url": "https://monroe-country-club.book.teeitup.com/",
+        "enabled": True,
+    },
     # Kings Mountain is RESOLD on GolfNow only -- its native sheet (Chronogolf)
     # publishes nothing, so the ONLY times that exist are GolfNow "Hot Deal"
     # trade times. Those are real but bookable solely via the GolfNow link below
@@ -125,14 +156,29 @@ COURSES = [
         "enabled": True,
     },
     # Carolina Lakes resolves on teeitup but carries ZERO inventory there (its
-    # real tee sheet is on ClubHouse Online). Disabled -- would need a separate
-    # ClubHouse Online adapter to be useful.
+    # real tee sheet is on ClubHouse Online). Re-verified live on 2026-07-08,
+    # still 0 -- enabled anyway per request since the adapter won't crash, it
+    # just won't ever show real times here. Would need a separate ClubHouse
+    # Online adapter to be actually useful.
     {
         "name": "Carolina Lakes Golf Club",
         "key": "carolinalakes",
         "platform": "teeitup",
         "alias": "carolina-lakes-golf-club",
         "booking_url": "https://www.golfnow.com/tee-times/facility/16601-carolina-lakes-golf-club/search",
+        "enabled": True,
+    },
+    # Chester Golf Club (Chester, SC -- ~55 miles out, outside the usual
+    # 30-mile radius, but explicitly requested). Resolves on teeitup with a
+    # real, live booking page (chester-golf-club.book.teeitup.com), but the
+    # alias carries ZERO inventory across every date tried on 2026-07-08.
+    # Disabled -- same dead-end pattern as Carolina Lakes above.
+    {
+        "name": "Chester Golf Club",
+        "key": "chester",
+        "platform": "teeitup",
+        "alias": "chester-golf-club",
+        "booking_url": "https://chester-golf-club.book.teeitup.com/",
         "enabled": False,
     },
 
@@ -162,6 +208,26 @@ COURSES = [
         "booking_url": "https://www.chronogolf.com/club/waterford-golf-club-south-carolina",
         "enabled": True,
     },
+    # Matthews, NC. Validated live on 2026-07-08 -- real inventory returned.
+    {
+        "name": "The Divide Golf Club",
+        "key": "thedivide",
+        "platform": "chronogolf",
+        "club_id": 9419,
+        "affiliation_type_id": 38498,
+        "booking_url": "https://www.chronogolf.com/club/the-divide",
+        "enabled": True,
+    },
+    # Charlotte, NC. Validated live on 2026-07-08 -- real inventory returned.
+    {
+        "name": "Highland Creek Golf Club",
+        "key": "highlandcreek",
+        "platform": "chronogolf",
+        "club_id": 18944,
+        "affiliation_type_id": 111817,
+        "booking_url": "https://www.chronogolf.com/club/highland-creek-golf-club",
+        "enabled": True,
+    },
     # Warrior books online via ForeUp (course 18999 / schedule 795), NOT its
     # Chronogolf listing (which returns empty). Validated live -- ~40 slots/day.
     {
@@ -180,10 +246,10 @@ COURSES = [
     #    behind Firebase auth + reCAPTCHA -- not an open GET, and reCAPTCHA
     #    won't be bypassed. (Its Chronogolf club 9385 is member-gated -> 0.)
     #    Would need a browser session capture to even attempt.
+    #    Re-verified live on 2026-07-08 -- unchanged, still a dead end.
     #  - Mooresville: municipal; runs its own .aspx tee sheet. Chronogolf
-    #    (club 9255) member-gated / empty.
-    #  - Emerald Lake (Matthews, branded "The Emerald"): Chronogolf club 9105
-    #    AND teeitup both return 0 -- no public online inventory found.
+    #    (club 9255) member-gated / empty. Re-verified live on 2026-07-08 --
+    #    unchanged, still a dead end.
     # ----------------------------------------------------------------------
     {
         "name": "Skybrook Golf Club",
@@ -203,6 +269,10 @@ COURSES = [
         "booking_url": "https://www.chronogolf.com/club/mooresville-golf-course",
         "enabled": False,
     },
+    # Emerald Lake (Matthews, branded "The Emerald"): Chronogolf club 9105 AND
+    # teeitup both return 0 -- no public online inventory found. Re-verified
+    # live on 2026-07-08, still 0 -- enabled anyway per request since the
+    # adapter won't crash, it just won't ever show real times here.
     {
         "name": "Emerald Lake Golf Club",
         "key": "emeraldlake",
@@ -210,6 +280,54 @@ COURSES = [
         "club_id": 9105,
         "affiliation_type_id": 37242,
         "booking_url": "https://www.chronogolf.com/club/emerald-lake-golf-club",
+        "enabled": True,
+    },
+    # Birkdale Golf Club (Huntersville, NC). Resolves on Chronogolf (club
+    # 8994, address-confirmed) but carries ZERO inventory there -- validated
+    # live on 2026-07-08 across multiple dates. Disabled -- dead end.
+    {
+        "name": "Birkdale Golf Club",
+        "key": "birkdale",
+        "platform": "chronogolf",
+        "club_id": 8994,
+        "affiliation_type_id": 36798,
+        "booking_url": "https://www.chronogolf.com/club/birkdale-golf-club-north-carolina",
+        "enabled": False,
+    },
+    # Olde Sycamore Golf Plantation (Mint Hill/Charlotte, NC). Resolves on
+    # Chronogolf (club 9291, listed inactive) but carries ZERO inventory --
+    # validated live on 2026-07-08 across multiple dates. Disabled -- dead end.
+    {
+        "name": "Olde Sycamore Golf Plantation",
+        "key": "oldesycamore",
+        "platform": "chronogolf",
+        "club_id": 9291,
+        "affiliation_type_id": 37986,
+        "booking_url": "https://www.chronogolf.com/club/olde-sycamore-golf-plantation",
+        "enabled": False,
+    },
+    # Charlotte National Golf Club (Indian Trail, NC). Resolves on Chronogolf
+    # (club 9047, listed inactive) but carries ZERO inventory -- validated
+    # live on 2026-07-08 across multiple dates. Disabled -- dead end.
+    {
+        "name": "Charlotte National Golf Club",
+        "key": "charlottenational",
+        "platform": "chronogolf",
+        "club_id": 9047,
+        "affiliation_type_id": 37010,
+        "booking_url": "https://www.chronogolf.com/club/charlotte-national-golf-course",
+        "enabled": False,
+    },
+    # Crowders Mountain Golf Club (Kings Mountain, NC). Resolves on Chronogolf
+    # (club 9080, listed inactive) but carries ZERO inventory -- validated
+    # live on 2026-07-08 across multiple dates. Disabled -- dead end.
+    {
+        "name": "Crowders Mountain Golf Club",
+        "key": "crowdersmountain",
+        "platform": "chronogolf",
+        "club_id": 9080,
+        "affiliation_type_id": 37142,
+        "booking_url": "https://www.chronogolf.com/club/crowders-mountain-golf-club",
         "enabled": False,
     },
 
@@ -287,7 +405,8 @@ NOTIFY_TO = None
 # Anchored to THIS folder, so the dashboard and state file always land next to
 # the scripts -- no matter which directory you happen to run the command from.
 import os
-_HERE = os.path.dirname(os.path.abspath(__file__))
+_ROOT  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_HERE  = os.path.dirname(os.path.abspath(__file__))
 
-STATE_FILE = os.path.join(_HERE, "seen_times.json")     # remembers last run
-DASHBOARD_FILE = os.path.join(_HERE, "Live Site.html")  # regenerated each run
+STATE_FILE     = os.path.join(_HERE, "seen_times.json")    # remembers last run
+DASHBOARD_FILE = os.path.join(_ROOT, "Live Site.html")     # regenerated each run

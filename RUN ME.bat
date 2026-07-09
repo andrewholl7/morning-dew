@@ -1,6 +1,6 @@
 @echo off
 cd /d "%~dp0"
-python main.py
+python "a.Context and Documentation\main.py"
 if errorlevel 1 (
     echo.
     echo Something went wrong -- see error above.
