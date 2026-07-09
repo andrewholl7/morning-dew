@@ -86,7 +86,7 @@ _TEMPLATE = r"""<!DOCTYPE html>
     --th-bg:#f3ece0;
   }
   * { box-sizing:border-box; }
-  html, body { overflow-x:hidden; max-width:100%; }
+  body { overflow-x:hidden; max-width:100%; }
   body {
     margin:0; background:var(--paper);
     font-family:'Hanken Grotesk',sans-serif;
