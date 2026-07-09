@@ -86,6 +86,7 @@ _TEMPLATE = r"""<!DOCTYPE html>
     --th-bg:#f3ece0;
   }
   * { box-sizing:border-box; }
+  html, body { overflow-x:hidden; max-width:100%; }
   body {
     margin:0; background:var(--paper);
     font-family:'Hanken Grotesk',sans-serif;
@@ -97,17 +98,18 @@ _TEMPLATE = r"""<!DOCTYPE html>
   header { background:var(--cream); border-bottom:1px solid var(--border); }
   .hbar {
     max-width:1240px; margin:0 auto; padding:14px 24px;
-    display:flex; align-items:center; justify-content:space-between;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
   }
-  .brand { display:flex; align-items:center; gap:11px; }
+  .brand { display:flex; align-items:center; gap:11px; min-width:0; }
   .wordmark {
     font-family:'Bricolage Grotesque',sans-serif; font-size:26px;
     font-weight:600; color:var(--navy); letter-spacing:-.5px;
   }
-  .syf { width:44px; height:44px; display:block; filter:drop-shadow(0 1px 3px #0003); }
-  .refreshed { font-size:12px; font-weight:600; color:#56708a; }
+  .syf { width:44px; height:44px; flex:none; display:block; filter:drop-shadow(0 1px 3px #0003); }
+  .refreshed-wrap { display:flex; align-items:center; gap:12px; flex:none; }
+  .refreshed { font-size:12px; font-weight:600; color:#56708a; white-space:nowrap; }
   .btn-refresh {
-    cursor:pointer; margin-left:12px; border:1.5px solid var(--sky-b);
+    cursor:pointer; border:1.5px solid var(--sky-b);
     background:var(--sky); color:var(--day-text); border-radius:999px;
     padding:6px 14px; font:700 12px/1 'Hanken Grotesk'; white-space:nowrap;
   }
@@ -300,27 +302,28 @@ _TEMPLATE = r"""<!DOCTYPE html>
   /* Time-picker modal */
   .modal-overlay {
     display:none; position:fixed; inset:0; background:rgba(20,30,55,.5);
-    z-index:200; align-items:center; justify-content:center; padding:20px;
+    z-index:200; align-items:center; justify-content:center; padding:16px;
   }
   .modal-overlay.open { display:flex; }
   .modal-box {
-    background:#fff; border-radius:16px; width:min(420px,100%); max-height:80vh;
+    background:#fff; border-radius:14px; width:min(340px,100%); max-height:75vh;
     overflow-y:auto; box-shadow:0 20px 50px rgba(20,30,55,.3);
   }
   .modal-head {
     position:sticky; top:0; background:#fff; display:flex; align-items:center;
-    justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border);
+    justify-content:space-between; padding:10px 14px; border-bottom:1px solid var(--border);
   }
-  .modal-head span { font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:15px; color:var(--navy); }
-  .modal-close { cursor:pointer; border:none; background:none; font-size:16px; color:var(--muted); padding:4px; }
-  .modal-list { padding:8px 10px; }
+  .modal-head span { font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:13.5px; color:var(--navy); }
+  .modal-close { cursor:pointer; border:none; background:none; font-size:14px; color:var(--muted); padding:4px; line-height:1; }
+  .modal-list { padding:4px 8px; }
   .modal-row {
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
-    padding:10px 8px; border-bottom:1px solid var(--row-b);
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:8px 6px; border-bottom:1px solid var(--row-b);
   }
   .modal-row:last-child { border-bottom:none; }
-  .modal-time { font-weight:700; color:var(--navy); font-size:14px; }
-  .modal-meta { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--muted); }
+  .modal-time { font-weight:700; color:var(--navy); font-size:13px; flex:0 0 auto; }
+  .modal-meta { display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--muted); flex:0 0 auto; }
+  .modal-row .btn-book { padding:5px 9px; font-size:11px; }
 
   /* Empty state */
   .empty { text-align:center; padding:64px 30px; }
@@ -330,6 +333,12 @@ _TEMPLATE = r"""<!DOCTYPE html>
 
   /* ---- Responsive ---- */
   @media (max-width:700px) {
+    .hbar         { flex-wrap:wrap; padding:10px 14px; gap:6px 10px; }
+    .wordmark     { font-size:19px; }
+    .syf          { width:32px; height:32px; }
+    .refreshed-wrap { flex:1 1 auto; justify-content:flex-end; gap:8px; }
+    .refreshed    { font-size:10px; overflow:hidden; text-overflow:ellipsis; max-width:150px; }
+    .btn-refresh  { padding:5px 11px; font-size:11px; }
     .rail         { display:none; }
     .filter-card  { display:flex; }
     .layout       { padding:0 0 40px; flex-direction:column; gap:0; }
@@ -388,7 +397,10 @@ _TEMPLATE = r"""<!DOCTYPE html>
       </svg>
       <span class="wordmark">__APPNAME__</span>
     </div>
-    <span class="refreshed">last refreshed __GENERATED__<button class="btn-refresh" id="refreshBtn">↻ Refresh</button></span>
+    <div class="refreshed-wrap">
+      <span class="refreshed">last refreshed __GENERATED__</span>
+      <button class="btn-refresh" id="refreshBtn">↻ Refresh</button>
+    </div>
   </div>
 </header>
 <div class="seam"></div>
