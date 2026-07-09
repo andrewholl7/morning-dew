@@ -56,11 +56,11 @@ def build_dashboard(tees_by_course):
 
 
 def _now():
-    dt = datetime.now()
+    dt = datetime.now(config.TIMEZONE)
     try:
-        return dt.strftime("%A, %b %-d %Y at %-I:%M %p")
+        return dt.strftime("%A, %b %-d %Y at %-I:%M %p %Z")
     except ValueError:
-        return dt.strftime("%A, %b %d %Y at %I:%M %p")
+        return dt.strftime("%A, %b %d %Y at %I:%M %p %Z")
 
 
 # --------------------------------------------------------------------------

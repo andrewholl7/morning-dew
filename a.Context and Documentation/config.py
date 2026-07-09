@@ -13,6 +13,13 @@
 # Name shown on the dashboard and in email subjects.
 APP_NAME = "Morning Dew"
 
+# All the courses are Charlotte/Fort Mill area, so "today" and the
+# dashboard's "last refreshed" time are always Eastern -- regardless of
+# what timezone the machine actually running this script is in (matters
+# once this runs on a cloud server, which defaults to UTC).
+from zoneinfo import ZoneInfo
+TIMEZONE = ZoneInfo("America/New_York")
+
 # --------------------------------------------------------------------------
 # 1) COURSES TO MONITOR
 # --------------------------------------------------------------------------

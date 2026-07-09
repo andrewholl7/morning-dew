@@ -12,7 +12,7 @@
 # Just run:   python main.py
 # --------------------------------------------------------------------------
 
-from datetime import date, timedelta
+from datetime import datetime, timedelta
 
 from dotenv import load_dotenv
 
@@ -30,7 +30,7 @@ load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 def dates_to_check():
     """Return the list of 'YYYY-MM-DD' dates this run should fetch."""
-    today = date.today()
+    today = datetime.now(config.TIMEZONE).date()
     out = []
     for offset in range(config.LOOKAHEAD_DAYS):
         d = today + timedelta(days=offset)
