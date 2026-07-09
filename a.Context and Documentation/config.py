@@ -140,6 +140,22 @@ COURSES = [
         "booking_url": "https://monroe-country-club.book.teeitup.com/",
         "enabled": True,
     },
+    # Sifford is one of 4 Mecklenburg County muni courses that share a single
+    # teeitup alias ("multicourse-booking-engine") -- every teetime in that
+    # feed carries a courseId, so `course_id_filter` picks out just Sifford's
+    # (mapped live on 2026-07-08 via its GolfNow facility id, 1563, which
+    # matches the "course=1563" param on Sifford's own booking page). It's a
+    # 9-hole course, hence "holes": 9 (see main.py's per-course holes override).
+    {
+        "name": "Dr. Charles L. Sifford Golf Course",
+        "key": "sifford",
+        "platform": "teeitup",
+        "alias": "multicourse-booking-engine",
+        "course_id_filter": "54f14bdf0c8ad60378b01891",
+        "holes": 9,
+        "booking_url": "https://meck-county-golf-booking-engine.book.teeitup.com/teetimes?course=1563",
+        "enabled": True,
+    },
     # Kings Mountain is RESOLD on GolfNow only -- its native sheet (Chronogolf)
     # publishes nothing, so the ONLY times that exist are GolfNow "Hot Deal"
     # trade times. Those are real but bookable solely via the GolfNow link below
@@ -157,16 +173,15 @@ COURSES = [
     },
     # Carolina Lakes resolves on teeitup but carries ZERO inventory there (its
     # real tee sheet is on ClubHouse Online). Re-verified live on 2026-07-08,
-    # still 0 -- enabled anyway per request since the adapter won't crash, it
-    # just won't ever show real times here. Would need a separate ClubHouse
-    # Online adapter to be actually useful.
+    # still 0. Disabled -- would need a separate ClubHouse Online adapter to
+    # be actually useful.
     {
         "name": "Carolina Lakes Golf Club",
         "key": "carolinalakes",
         "platform": "teeitup",
         "alias": "carolina-lakes-golf-club",
         "booking_url": "https://www.golfnow.com/tee-times/facility/16601-carolina-lakes-golf-club/search",
-        "enabled": True,
+        "enabled": False,
     },
     # Chester Golf Club (Chester, SC -- ~55 miles out, outside the usual
     # 30-mile radius, but explicitly requested). Resolves on teeitup with a
@@ -271,8 +286,8 @@ COURSES = [
     },
     # Emerald Lake (Matthews, branded "The Emerald"): Chronogolf club 9105 AND
     # teeitup both return 0 -- no public online inventory found. Re-verified
-    # live on 2026-07-08, still 0 -- enabled anyway per request since the
-    # adapter won't crash, it just won't ever show real times here.
+    # live on 2026-07-08, still 0. Disabled -- would need a working adapter for
+    # whatever platform their real tee sheet is on to be actually useful.
     {
         "name": "Emerald Lake Golf Club",
         "key": "emeraldlake",
@@ -280,7 +295,7 @@ COURSES = [
         "club_id": 9105,
         "affiliation_type_id": 37242,
         "booking_url": "https://www.chronogolf.com/club/emerald-lake-golf-club",
-        "enabled": True,
+        "enabled": False,
     },
     # Birkdale Golf Club (Huntersville, NC). Resolves on Chronogolf (club
     # 8994, address-confirmed) but carries ZERO inventory there -- validated

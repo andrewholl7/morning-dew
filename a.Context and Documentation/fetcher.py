@@ -183,6 +183,12 @@ def _fetch_teeitup(course, date_str, players, holes):
     Kenna wants the date as YYYY-MM-DD (same as our internal format) and the
     course alias in the x-be-alias header. `players` is ignored -- the API
     returns all slots and we read open spots from each one.
+
+    Some aliases (e.g. Mecklenburg County's "multicourse-booking-engine")
+    are shared across several physical courses -- every teetime carries a
+    `courseId` identifying which one. If the config entry sets
+    `course_id_filter`, only teetimes with a matching courseId are kept;
+    otherwise (the normal case -- one alias per course) nothing is filtered.
     """
     headers = {**_HEADERS, "x-be-alias": course["alias"]}
     resp = requests.get(
@@ -194,9 +200,13 @@ def _fetch_teeitup(course, date_str, players, holes):
     if not isinstance(data, list):
         return []
 
+    course_id_filter = course.get("course_id_filter")
+
     times = []
     for day in data:
         for raw in day.get("teetimes", []):
+            if course_id_filter and raw.get("courseId") != course_id_filter:
+                continue
             try:
                 rec = normalize_teeitup(raw, course, holes)
             except (KeyError, ValueError, TypeError):

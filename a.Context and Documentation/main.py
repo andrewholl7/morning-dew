@@ -60,10 +60,13 @@ def run():
 
     for course in courses:
         found = 0
+        # Almost every course is 18 holes (config.HOLES), but a course entry
+        # can set its own "holes" (e.g. Sifford is a 9-hole muni course).
+        course_holes = course.get("holes", config.HOLES)
         for d in dates:
             try:
                 tees = fetcher.fetch_course_day(
-                    course, d, config.FETCH_PLAYERS, config.HOLES
+                    course, d, config.FETCH_PLAYERS, course_holes
                 )
             except Exception as e:  # network hiccup, bad ID, etc. -- keep going
                 print(f"  ! {course['name']} {d}: {e}")
