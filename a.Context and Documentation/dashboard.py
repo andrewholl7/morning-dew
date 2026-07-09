@@ -295,16 +295,32 @@ _TEMPLATE = r"""<!DOCTYPE html>
   /* Group (course-aggregated) rows */
   tr.group-head td { background:#f7f2e7; cursor:default; }
   td.group-time { font-weight:700; color:var(--navy); white-space:nowrap; font-size:14px; }
-  .group-actions { display:flex; align-items:center; justify-content:flex-end; gap:10px; }
-  .expand-lbl {
-    font:700 12px/1 'Hanken Grotesk'; color:var(--carolina);
-    white-space:nowrap; cursor:pointer; user-select:none;
-  }
-  .expand-lbl:hover { color:#266aa0; }
+  button.btn-book { border:none; cursor:pointer; }
 
-  /* Expanded child rows */
-  tr.group-child td { background:var(--offwhite); }
-  td.child-time { padding-left:34px; color:#6a7686; font-style:italic; font-size:13.5px; }
+  /* Time-picker modal */
+  .modal-overlay {
+    display:none; position:fixed; inset:0; background:rgba(20,30,55,.5);
+    z-index:200; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal-box {
+    background:#fff; border-radius:16px; width:min(420px,100%); max-height:80vh;
+    overflow-y:auto; box-shadow:0 20px 50px rgba(20,30,55,.3);
+  }
+  .modal-head {
+    position:sticky; top:0; background:#fff; display:flex; align-items:center;
+    justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border);
+  }
+  .modal-head span { font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:15px; color:var(--navy); }
+  .modal-close { cursor:pointer; border:none; background:none; font-size:16px; color:var(--muted); padding:4px; }
+  .modal-list { padding:8px 10px; }
+  .modal-row {
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:10px 8px; border-bottom:1px solid var(--row-b);
+  }
+  .modal-row:last-child { border-bottom:none; }
+  .modal-time { font-weight:700; color:var(--navy); font-size:14px; }
+  .modal-meta { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--muted); }
 
   /* Empty state */
   .empty { text-align:center; padding:64px 30px; }
@@ -328,6 +344,29 @@ _TEMPLATE = r"""<!DOCTYPE html>
     .course-item  { padding:10px 6px; font-size:14px; }
     .range-input::-webkit-slider-thumb { width:26px; height:26px; }
     .range-input::-moz-range-thumb     { width:26px; height:26px; }
+
+    /* Collapse the results table into single-line flex rows so nothing
+       ever needs horizontal scrolling to reach the Book button. */
+    table        { display:block; width:100%; }
+    thead        { display:none; }
+    tbody        { display:block; width:100%; }
+    tr.day-head  { display:block; }
+    tr.day-head td { padding:9px 14px; }
+    tbody tr:not(.day-head) {
+      display:flex; align-items:center; flex-wrap:nowrap; gap:6px;
+      width:100%; padding:8px 12px; border-bottom:1px solid var(--row-b);
+    }
+    td { padding:0; border:none; font-size:12.5px; }
+    td.time-cell, td.group-time { flex:0 0 auto; font-size:11.5px; white-space:nowrap; }
+    td:nth-child(2) {
+      flex:1 1 auto; min-width:0; font-size:12px; font-weight:600;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    td.price-cell { flex:0 0 auto; font-size:12px; }
+    td.tc         { flex:0 0 auto; }
+    .spots-pill   { min-width:18px; padding:2px 7px; font-size:11px; }
+    td:last-child { flex:0 0 auto; padding-left:2px; }
+    .btn-book     { padding:6px 10px; font-size:11.5px; }
   }
   @media (min-width:701px) {
     .count-mobile { display:none !important; }
@@ -480,6 +519,17 @@ _TEMPLATE = r"""<!DOCTYPE html>
   </section>
 
 </div><!-- /.layout -->
+
+<!-- ===== Time-picker modal (grouped tee times) ===== -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span id="modalTitle"></span>
+      <button class="modal-close" id="modalClose" type="button">✕</button>
+    </div>
+    <div class="modal-list" id="modalList"></div>
+  </div>
+</div>
 
 <script>
 const DATA     = __DATA__;
@@ -709,15 +759,29 @@ function toggleDay(date){
 }
 
 // ==============================
-// Course-group toggle
+// Time-picker modal (grouped tee times)
 // ==============================
-function toggleGroup(id){
-  const kids = document.querySelectorAll('[data-grp="'+id+'"]');
-  const lbl  = document.getElementById('lbl-'+id);
-  const open = kids.length && kids[0].style.display!=='none';
-  kids.forEach(r => r.style.display = open?'none':'');
-  if(lbl) lbl.textContent = (open?'▸':'▾') + lbl.textContent.slice(1);
+const groupStore   = {};
+const modalOverlay = document.getElementById('modalOverlay');
+const modalTitle   = document.getElementById('modalTitle');
+const modalList    = document.getElementById('modalList');
+
+function openModal(id){
+  const g = groupStore[id];
+  if(!g) return;
+  modalTitle.textContent = g.course+' · '+ABBR[g.dow]+' '+prettyDate(g.date);
+  modalList.innerHTML = g.rows.map(r =>
+    '<div class="modal-row">'+
+      '<span class="modal-time">'+fmtTime(r.time)+'</span>'+
+      '<span class="modal-meta"><span>'+fmtPrice(r.price)+'</span><span class="spots-pill">'+r.spots+'</span></span>'+
+      '<a class="btn-book" href="'+r.url+'" target="_blank" rel="noopener">Book ›</a>'+
+    '</div>'
+  ).join('');
+  modalOverlay.classList.add('open');
 }
+function closeModal(){ modalOverlay.classList.remove('open'); }
+document.getElementById('modalClose').onclick = closeModal;
+modalOverlay.addEventListener('click', e => { if(e.target===modalOverlay) closeModal(); });
 
 // ==============================
 // Filter + render
@@ -776,6 +840,7 @@ function render(rows){
     '</tr></thead>';
 
   let gi = 0;
+  Object.keys(groupStore).forEach(k => delete groupStore[k]);
 
   dateOrder.forEach(date => {
     const dayRows = byDate.get(date);
@@ -834,7 +899,8 @@ function render(rows){
         const priceStr = prices.length===0?'—':lo===hi?'$'+lo:'$'+lo+'–$'+hi;
         const maxSpots = Math.max(...grp.map(r=>r.spots));
 
-        // Summary row — book link visible immediately, expand toggle beside it
+        // Summary row — clicking Book opens a modal to pick a specific time
+        groupStore[id] = { course: first.course, date, dow, rows: grp };
         const sTr = document.createElement('tr');
         sTr.className = 'group-head';
         sTr.setAttribute('data-day-row', date);
@@ -844,28 +910,8 @@ function render(rows){
           '<td class="holes-col tc">'+first.holes+'</td>'+
           '<td class="price-cell tr">'+priceStr+'</td>'+
           '<td class="tc"><span class="spots-pill">'+maxSpots+'</span></td>'+
-          '<td class="tr"><div class="group-actions">'+
-            '<a class="btn-book" href="'+first.url+'" target="_blank" rel="noopener">Book ›</a>'+
-            '<span class="expand-lbl" id="lbl-'+id+'" onclick="toggleGroup(\''+id+'\')">▸ '+grp.length+' times</span>'+
-          '</div></td>';
+          '<td class="tr"><button class="btn-book" type="button" onclick="openModal(\''+id+'\')">'+grp.length+' times ›</button></td>';
         tbody.appendChild(sTr);
-
-        // Child rows (collapsed by default)
-        grp.forEach(r => {
-          const cTr = document.createElement('tr');
-          cTr.className = 'group-child';
-          cTr.setAttribute('data-grp', id);
-          cTr.setAttribute('data-day-row', date);
-          cTr.style.display = 'none';
-          cTr.innerHTML =
-            '<td class="child-time">'+fmtTime(r.time)+'</td>'+
-            '<td></td>'+
-            '<td class="holes-col"></td>'+
-            '<td class="price-cell tr">'+fmtPrice(r.price)+'</td>'+
-            '<td class="tc"><span class="spots-pill">'+r.spots+'</span></td>'+
-            '<td class="tr"><a class="btn-book" href="'+r.url+'" target="_blank" rel="noopener">Book ›</a></td>';
-          tbody.appendChild(cTr);
-        });
       }
     });
 
