@@ -342,8 +342,8 @@ _TEMPLATE = r"""<!DOCTYPE html>
     .btn-refresh  { padding:5px 11px; font-size:11px; flex:none; }
     .rail         { display:none; }
     .filter-card  { display:flex; }
-    .layout       { padding:0 0 40px; flex-direction:column; gap:0; }
-    .results      { padding:0; }
+    .layout       { padding:0 0 40px; flex-direction:column; align-items:stretch; gap:0; }
+    .results      { padding:0; width:100%; min-width:0; }
     .results-head { display:none; }
     .count-mobile { display:block; }
     .card         { border-radius:0; border-left:none; border-right:none; box-shadow:none; }
