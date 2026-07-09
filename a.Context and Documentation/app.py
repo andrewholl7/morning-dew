@@ -35,10 +35,24 @@ def _refresh():
         main.run()
 
 
+_WAIT_PAGE = """<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<meta http-equiv="refresh" content="4">
+<title>Morning Dew -- starting up</title>
+<style>body{font-family:sans-serif;text-align:center;padding:80px 20px;color:#15294a}</style>
+</head><body>
+<h2>Fetching today's tee times...</h2>
+<p>First load after a quiet spell takes under a minute. This page refreshes itself.</p>
+</body></html>"""
+
+
 @app.route("/")
 def index():
     if not os.path.exists(config.DASHBOARD_FILE):
-        _refresh()
+        # Never block the request on a live fetch (Render's gateway will
+        # time out a cold start otherwise) -- the startup thread is already
+        # building it; just show a self-refreshing waiting page meanwhile.
+        return Response(_WAIT_PAGE, mimetype="text/html")
     with open(config.DASHBOARD_FILE, "r", encoding="utf-8") as f:
         html = f.read()
     return Response(html, mimetype="text/html")
@@ -46,8 +60,17 @@ def index():
 
 @app.route("/refresh", methods=["POST"])
 def refresh():
-    _refresh()
-    return {"ok": True}
+    # Kick off the fetch in the background and return immediately -- a live
+    # fetch across every course takes 40-60s, longer than Render's gateway
+    # is willing to wait on a single request. The front-end polls /status.
+    if not _lock.locked():
+        threading.Thread(target=_refresh, daemon=True).start()
+    return {"started": True}
+
+
+@app.route("/status")
+def status():
+    return {"refreshing": _lock.locked()}
 
 
 _scheduler = BackgroundScheduler()

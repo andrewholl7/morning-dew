@@ -813,7 +813,15 @@ if (refreshBtn) {
     try {
       const res = await fetch('/refresh', { method: 'POST' });
       if (!res.ok) throw new Error('refresh failed');
-      location.reload();
+      // The fetch runs in the background server-side (can take 40-60s) --
+      // poll /status until it's done, then reload to show fresh data.
+      const poll = setInterval(async () => {
+        const s = await fetch('/status').then(r => r.json()).catch(() => null);
+        if (s && !s.refreshing) {
+          clearInterval(poll);
+          location.reload();
+        }
+      }, 3000);
     } catch (e) {
       refreshBtn.disabled = false;
       refreshBtn.textContent = '↻ Refresh';
