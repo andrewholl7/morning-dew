@@ -36,7 +36,7 @@ def build_dashboard(tees_by_course):
         "start":   config.MATCH_TIME_START,
         "end":     config.MATCH_TIME_END,
         "players": config.PLAYERS,
-        "holes":   config.HOLES,
+        "holes":   "any",
     })
     enabled_courses = sorted(
         c["name"] for c in config.COURSES if c.get("enabled", True)
@@ -146,6 +146,7 @@ _TEMPLATE = r"""<!DOCTYPE html>
   }
   .fblock { margin-bottom:16px; }
   .fblock:last-child { margin-bottom:0; }
+  .frow-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
 
   /* Day chips */
   .chips { display:flex; gap:5px; flex-wrap:wrap; }
@@ -156,13 +157,37 @@ _TEMPLATE = r"""<!DOCTYPE html>
   }
   .day-chip.on { background:var(--sky); border-color:var(--sky-b); color:var(--day-text); }
 
-  /* Time dropdowns */
-  .timewrap { display:flex; align-items:center; gap:8px; }
-  .timewrap select {
-    flex:1; border:1.5px solid var(--border); border-radius:10px; padding:8px 10px;
-    font-size:13px; font-weight:600; background:#fff; color:var(--navy); cursor:pointer;
+  /* Time range slider */
+  .range-slider { position:relative; height:28px; margin:4px 0 2px; }
+  .range-track {
+    position:absolute; top:50%; left:0; right:0; height:4px; margin-top:-2px;
+    background:var(--border); border-radius:2px;
   }
-  .timesep { color:var(--muted); font-weight:700; }
+  .range-fill {
+    position:absolute; top:50%; height:4px; margin-top:-2px;
+    background:var(--carolina); border-radius:2px;
+  }
+  .range-input {
+    position:absolute; top:0; left:0; width:100%; height:28px; margin:0;
+    background:transparent; pointer-events:none;
+    -webkit-appearance:none; appearance:none;
+  }
+  .range-input::-webkit-slider-runnable-track { -webkit-appearance:none; background:transparent; height:28px; }
+  .range-input::-webkit-slider-thumb {
+    -webkit-appearance:none; pointer-events:auto; width:22px; height:22px; border-radius:50%;
+    background:#fff; border:2.5px solid var(--carolina); box-shadow:0 2px 6px rgba(20,30,55,.25);
+    cursor:pointer; margin-top:0;
+  }
+  .range-input::-moz-range-track { background:transparent; height:28px; border:none; }
+  .range-input::-moz-range-thumb {
+    pointer-events:auto; width:22px; height:22px; border-radius:50%;
+    background:#fff; border:2.5px solid var(--carolina); box-shadow:0 2px 6px rgba(20,30,55,.25);
+    cursor:pointer;
+  }
+  .range-labels {
+    display:flex; justify-content:space-between;
+    font:700 12.5px/1 'Hanken Grotesk'; color:var(--navy);
+  }
 
   /* Segmented controls (players + holes) */
   .seg { display:flex; background:#fff; border:1.5px solid var(--border); border-radius:11px; padding:3px; }
@@ -197,9 +222,15 @@ _TEMPLATE = r"""<!DOCTYPE html>
   .dd-panel {
     display:none; position:absolute; top:42px; left:0; z-index:60;
     background:#fff; border:1px solid var(--border); border-radius:14px;
-    padding:8px; min-width:240px; box-shadow:0 16px 40px rgba(20,30,55,.22);
+    padding:8px; width:min(320px,90vw); box-shadow:0 16px 40px rgba(20,30,55,.22);
   }
   .dd-panel.open { display:block; }
+  .dd-quick { display:flex; gap:8px; margin-bottom:8px; }
+  .dd-quick button {
+    flex:1; cursor:pointer; border:1px solid var(--border); border-radius:8px;
+    background:#f3eddf; font:700 12px/1 'Hanken Grotesk'; color:var(--navy); padding:8px;
+  }
+  .dd-list { max-height:240px; overflow-y:auto; }
   .dd-footer { display:flex; gap:8px; margin-top:6px; border-top:1px solid #eee4d3; padding-top:8px; }
   .dd-footer button {
     flex:1; cursor:pointer; border:1px solid var(--border); border-radius:8px;
@@ -291,6 +322,12 @@ _TEMPLATE = r"""<!DOCTYPE html>
     .count-mobile { display:block; }
     .card         { border-radius:0; border-left:none; border-right:none; box-shadow:none; }
     th.holes-col, td.holes-col { display:none; }
+    .day-chip     { padding:9px 14px; font-size:13px; }
+    .seg-btn      { padding:10px 0; }
+    .dd-btn       { padding:11px 14px; width:100%; justify-content:space-between; }
+    .course-item  { padding:10px 6px; font-size:14px; }
+    .range-input::-webkit-slider-thumb { width:26px; height:26px; }
+    .range-input::-moz-range-thumb     { width:26px; height:26px; }
   }
   @media (min-width:701px) {
     .count-mobile { display:none !important; }
@@ -320,15 +357,27 @@ _TEMPLATE = r"""<!DOCTYPE html>
 <!-- ===== Mobile filter card ===== -->
 <div class="filter-card">
   <div class="fblock" style="margin:0">
-    <span class="flabel">Days</span>
+    <div class="frow-head">
+      <span class="flabel" style="margin:0">Days</span>
+      <span>
+        <button class="btn-small" id="dateAllMob">All</button>
+        &nbsp;·&nbsp;
+        <button class="btn-small" id="dateNoneMob">None</button>
+      </span>
+    </div>
     <div class="chips" id="dayChipsMob"></div>
   </div>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <span class="flabel" style="margin:0;width:54px;flex:none;">Time</span>
-    <div class="timewrap" style="flex:1">
-      <select id="tStartMob"></select>
-      <span class="timesep">–</span>
-      <select id="tEndMob"></select>
+  <div class="fblock" style="margin:0">
+    <span class="flabel">Time window</span>
+    <div class="range-slider" id="sliderWrapMob">
+      <div class="range-track"></div>
+      <div class="range-fill" id="rangeFillMob"></div>
+      <input type="range" class="range-input" id="tStartMob" min="300" max="1260" step="30">
+      <input type="range" class="range-input" id="tEndMob" min="300" max="1260" step="30">
+    </div>
+    <div class="range-labels">
+      <span id="tStartLabelMob"></span>
+      <span id="tEndLabelMob"></span>
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:10px;">
@@ -339,18 +388,20 @@ _TEMPLATE = r"""<!DOCTYPE html>
     <span class="flabel" style="margin:0;width:54px;flex:none;">Holes</span>
     <div class="seg" id="holeSegMob" style="flex:1"></div>
   </div>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <span class="flabel" style="margin:0;width:54px;flex:none;">Courses</span>
+  <div class="fblock" style="margin:0">
+    <span class="flabel">Courses</span>
     <div class="dd">
       <button class="dd-btn" id="ddBtn" type="button">
         <span id="ddBtnLabel">All courses</span>
         <span style="color:var(--muted);font-size:10px;">▾</span>
       </button>
       <div class="dd-panel" id="ddPanel">
-        <div id="ddList"></div>
-        <div class="dd-footer">
+        <div class="dd-quick">
           <button id="ddAll">All</button>
           <button id="ddNone">None</button>
+        </div>
+        <div class="dd-list" id="ddList"></div>
+        <div class="dd-footer">
           <button class="btn-done" id="ddDone">Done</button>
         </div>
       </div>
@@ -371,15 +422,27 @@ _TEMPLATE = r"""<!DOCTYPE html>
       <button class="btn-reset" id="resetBtn">↺ Reset</button>
     </div>
     <div class="fblock">
-      <span class="flabel">Days</span>
+      <div class="frow-head">
+        <span class="flabel" style="margin:0">Days</span>
+        <span>
+          <button class="btn-small" id="dateAllDsk">All</button>
+          &nbsp;·&nbsp;
+          <button class="btn-small" id="dateNoneDsk">None</button>
+        </span>
+      </div>
       <div class="chips" id="dayChipsDsk"></div>
     </div>
     <div class="fblock">
       <span class="flabel">Time window</span>
-      <div class="timewrap">
-        <select id="tStartDsk"></select>
-        <span class="timesep">–</span>
-        <select id="tEndDsk"></select>
+      <div class="range-slider" id="sliderWrapDsk">
+        <div class="range-track"></div>
+        <div class="range-fill" id="rangeFillDsk"></div>
+        <input type="range" class="range-input" id="tStartDsk" min="300" max="1260" step="30">
+        <input type="range" class="range-input" id="tEndDsk" min="300" max="1260" step="30">
+      </div>
+      <div class="range-labels">
+        <span id="tStartLabelDsk"></span>
+        <span id="tEndLabelDsk"></span>
       </div>
     </div>
     <div class="fblock">
@@ -391,7 +454,7 @@ _TEMPLATE = r"""<!DOCTYPE html>
       <div class="seg" id="holeSegDsk"></div>
     </div>
     <div class="fblock">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div class="frow-head">
         <span class="flabel" style="margin:0">Courses</span>
         <span>
           <button class="btn-small" id="dskAll">All</button>
@@ -476,34 +539,47 @@ function syncChips(){
 buildChips('dayChipsMob');
 buildChips('dayChipsDsk');
 
-// ==============================
-// Time dropdowns
-// ==============================
-function fillTimes(id){
-  let html='';
-  for(let m=5*60; m<=21*60; m+=30){
-    const v=String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
-    html+='<option value="'+v+'">'+fmtTime(v)+'</option>';
-  }
-  document.getElementById(id).innerHTML=html;
-}
-['tStartMob','tEndMob','tStartDsk','tEndDsk'].forEach(fillTimes);
-document.getElementById('tStartMob').value = selStart;
-document.getElementById('tEndMob').value   = selEnd;
-document.getElementById('tStartDsk').value = selStart;
-document.getElementById('tEndDsk').value   = selEnd;
+function selectAllDates(){ selDates = new Set(sortedDates); syncChips(); apply(); }
+function selectNoneDates(){ selDates = new Set(); syncChips(); apply(); }
+document.getElementById('dateAllMob').onclick  = selectAllDates;
+document.getElementById('dateNoneMob').onclick = selectNoneDates;
+document.getElementById('dateAllDsk').onclick  = selectAllDates;
+document.getElementById('dateNoneDsk').onclick = selectNoneDates;
 
-function wireTime(src, mirror, setter){
-  document.getElementById(src).addEventListener('change', function(){
-    setter(this.value);
-    document.getElementById(mirror).value = this.value;
-    apply();
+// ==============================
+// Time range slider
+// ==============================
+const TIME_MIN = 5*60, TIME_MAX = 21*60;
+const fromMin  = m => String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+
+function paintSlider(sfx){
+  const s = toMin(selStart), e = toMin(selEnd);
+  const pct = v => (v-TIME_MIN)/(TIME_MAX-TIME_MIN)*100;
+  document.getElementById('tStart'+sfx).value = s;
+  document.getElementById('tEnd'+sfx).value   = e;
+  document.getElementById('rangeFill'+sfx).style.left  = pct(s)+'%';
+  document.getElementById('rangeFill'+sfx).style.right = (100-pct(e))+'%';
+  document.getElementById('tStartLabel'+sfx).textContent = fmtTime(selStart);
+  document.getElementById('tEndLabel'+sfx).textContent   = fmtTime(selEnd);
+}
+function paintAllSliders(){ paintSlider('Mob'); paintSlider('Dsk'); }
+
+function wireSlider(sfx){
+  document.getElementById('tStart'+sfx).addEventListener('input', function(){
+    let v = Number(this.value);
+    if(v > toMin(selEnd)) v = toMin(selEnd);
+    selStart = fromMin(v);
+    paintAllSliders(); apply();
+  });
+  document.getElementById('tEnd'+sfx).addEventListener('input', function(){
+    let v = Number(this.value);
+    if(v < toMin(selStart)) v = toMin(selStart);
+    selEnd = fromMin(v);
+    paintAllSliders(); apply();
   });
 }
-wireTime('tStartMob','tStartDsk', v=>selStart=v);
-wireTime('tStartDsk','tStartMob', v=>selStart=v);
-wireTime('tEndMob',  'tEndDsk',   v=>selEnd=v);
-wireTime('tEndDsk',  'tEndMob',   v=>selEnd=v);
+['Mob','Dsk'].forEach(wireSlider);
+paintAllSliders();
 
 // ==============================
 // Segmented controls
@@ -617,8 +693,7 @@ document.getElementById('resetBtn').onclick = () => {
   selPlayers = DEFAULTS.players;
   selHoles   = DEFAULTS.holes;
   selCourses = new Set(COURSES);
-  ['tStartMob','tStartDsk'].forEach(id => document.getElementById(id).value=selStart);
-  ['tEndMob',  'tEndDsk'  ].forEach(id => document.getElementById(id).value=selEnd);
+  paintAllSliders();
   syncChips(); syncSegs(); syncCourseLists(); apply();
 };
 

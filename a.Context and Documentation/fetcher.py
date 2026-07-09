@@ -309,7 +309,16 @@ _CHRONOGOLF_TIMES_URL = "https://www.chronogolf.com/marketplace/clubs/{club_id}/
 
 
 def _fetch_chronogolf(course, date_str, players, holes):
-    """Call the Chronogolf tee-times API for one course/date."""
+    """Call the Chronogolf tee-times API for one course/date.
+
+    Chronogolf sits behind Cloudflare, which scores requests from cloud/
+    datacenter IPs (like a Render server) more harshly than residential ones
+    -- sometimes blocking them even with no explicit rule from the site
+    owner. Sending the same headers a real browser would (Referer/Origin
+    pointing at the club's own booking page, Accept-Language) is a
+    legitimate, non-evasive way to look like normal traffic and reduce the
+    odds of a false-positive block; it does not defeat any actual challenge.
+    """
     url = _CHRONOGOLF_TIMES_URL.format(club_id=course["club_id"])
     params = {
         "date": date_str,            # YYYY-MM-DD
@@ -318,7 +327,13 @@ def _fetch_chronogolf(course, date_str, players, holes):
         # which is the array form the API requires.
         "affiliation_type_ids[]": course["affiliation_type_id"],
     }
-    resp = requests.get(url, params=params, headers=_HEADERS, timeout=_TIMEOUT)
+    headers = {
+        **_HEADERS,
+        "Referer": course.get("booking_url", "https://www.chronogolf.com/"),
+        "Origin": "https://www.chronogolf.com",
+        "Accept-Language": "en-US,en;q=0.9",
+    }
+    resp = requests.get(url, params=params, headers=headers, timeout=_TIMEOUT)
     resp.raise_for_status()
 
     data = resp.json()
