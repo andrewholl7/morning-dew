@@ -333,12 +333,13 @@ _TEMPLATE = r"""<!DOCTYPE html>
 
   /* ---- Responsive ---- */
   @media (max-width:700px) {
-    .hbar         { flex-wrap:wrap; padding:10px 14px; gap:6px 10px; }
+    .hbar         { flex-wrap:wrap; padding:10px 14px; gap:6px; }
     .wordmark     { font-size:19px; }
     .syf          { width:32px; height:32px; }
-    .refreshed-wrap { flex:1 1 auto; justify-content:flex-end; gap:8px; }
-    .refreshed    { font-size:10px; overflow:hidden; text-overflow:ellipsis; max-width:150px; }
-    .btn-refresh  { padding:5px 11px; font-size:11px; }
+    .brand        { flex:1 1 100%; }
+    .refreshed-wrap { flex:1 1 100%; justify-content:space-between; gap:8px; }
+    .refreshed    { font-size:10.5px; white-space:normal; overflow:visible; text-overflow:clip; max-width:none; min-width:0; flex:1 1 auto; }
+    .btn-refresh  { padding:5px 11px; font-size:11px; flex:none; }
     .rail         { display:none; }
     .filter-card  { display:flex; }
     .layout       { padding:0 0 40px; flex-direction:column; gap:0; }
